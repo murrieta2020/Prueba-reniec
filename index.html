@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta DNI Perú</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        #resultado { margin-top: 20px; }
+        label, input, button { font-size: 1.2em; }
+        input { padding: 5px; width: 200px; }
+        button { padding: 6px 12px; }
+    </style>
+</head>
+<body>
+    <h1>Consulta DNI Perú</h1>
+    <label for="dni">Ingrese DNI:</label>
+    <input type="text" id="dni" maxlength="8" pattern="\d{8}" placeholder="8 dígitos" required>
+    <button onclick="consultarDNI()">Consultar</button>
+    <div id="resultado"></div>
+
+    <script>
+        function consultarDNI() {
+            const dni = document.getElementById('dni').value.trim();
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = '';
+
+            if (!/^\d{8}$/.test(dni)) {
+                resultado.textContent = 'Por favor ingrese un DNI válido de 8 dígitos.';
+                return;
+            }
+
+            resultado.textContent = 'Consultando...';
+
+            const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im11cnJpZXRhLm5ldEBnbWFpbC5jb20ifQ.HnqOcsYc2L7ujeWT6UACvLpso-MzH4p-NCCQtR0zBis';
+            fetch(`https://dniruc.apisperu.com/api/v1/dni/${dni}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('No se encontró la información.');
+                    return response.json();
+                })
+                .then(data => {
+                    resultado.innerHTML = `
+                        <strong>Nombre:</strong> ${data.nombres || 'N/A'}<br>
+                        <strong>Apellido Paterno:</strong> ${data.apellidoPaterno || 'N/A'}<br>
+                        <strong>Apellido Materno:</strong> ${data.apellidoMaterno || 'N/A'}<br>
+                        <strong>codVerifica:</strong> ${data.codVerifica || 'N/A'}<br>
+                        <strong>codVerificaLetra:</strong> ${data.codVerificaLetra || 'N/A'}<br>
+                        <strong>direccion:</strong> ${data.direccion || 'N/A'}<br>
+                    `;
+                })
+                .catch(error => {
+                    resultado.textContent = 'No se pudo consultar el DNI o no existe.';
+                });
+        }
+    </script>
+</body>
+</html>
